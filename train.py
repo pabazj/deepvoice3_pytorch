@@ -22,6 +22,8 @@ options:
 from docopt import docopt
 
 import sys
+import gc
+import platform
 from os.path import dirname, join
 from tqdm import tqdm, trange
 from datetime import datetime
@@ -130,7 +132,18 @@ class TextDataSource(FileDataSource):
             text, speaker_id = args
         else:
             text = args[0]
+        global _frontend
+        if _frontend is None:
+            _frontend = getattr(frontend, hparams.frontend)
         seq = _frontend.text_to_sequence(text, p=hparams.replace_pronunciation_prob)
+
+        if platform.system() == "Windows":
+            if hasattr(hparams, 'gc_probability'):
+                _frontend = None  # memory leaking prevention in Windows
+                if np.random.rand() < hparams.gc_probability:
+                    gc.collect()  # garbage collection enforced
+                    print("GC done")
+
         if self.multi_speaker:
             return np.asarray(seq, dtype=np.int32), int(speaker_id)
         else:
@@ -876,6 +889,13 @@ if __name__ == "__main__":
             hparams.parse_json(f.read())
     # Override hyper parameters
     hparams.parse(args["--hparams"])
+
+    # Preventing Windows specific error such as MemoryError
+    # Also reduces the occurrence of THAllocator.c 0x05 error in Widows build of PyTorch
+    if platform.system() == "Windows":
+        print("Windows Detected - num_workers set to 1")
+        hparams.set_hparam('num_workers', 1)
+
     assert hparams.name == "deepvoice3"
     print(hparams_debug_string())
 
@@ -930,7 +950,10 @@ if __name__ == "__main__":
 
     # Setup summary writer for tensorboard
     if log_event_path is None:
-        log_event_path = "log/run-test" + str(datetime.now()).replace(" ", "_")
+        if platform.system() == "Windows":
+            log_event_path = "log/run-test" + str(datetime.now()).replace(" ", "_").replace(":","_")
+        else:
+            log_event_path = "log/run-test" + str(datetime.now()).replace(" ", "_")
     print("Los event path: {}".format(log_event_path))
     writer = SummaryWriter(log_dir=log_event_path)
 
