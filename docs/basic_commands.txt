@@ -1,0 +1,14 @@
+#Pre-process
+python preprocess.py --preset=presets/deepvoice3_ljspeech.json ljspeech ~/data/LJSpeech-1.1/ ./data/ljspeech
+
+#Train
+python train.py --preset=presets/deepvoice3_ljspeech.json --data-root=./data/ljspeech/
+--checkpoint-dir=<path_to_save_model_pth_files> # Will customize the output directory. --checkpoint="<partially_trained_model>.pth" # Will start training from the nth global setp.
+Eg :- python train.py --preset=presets/deepvoice3_ljspeech.json --data-root=../../deep_voice_data/ljspeech --checkpoint="./checkpoints/checkpoint_step000126000.pth" 
+
+#Synthesis
+python synthesis.py ./checkpoints/checkpoint_step000126000.pth text_list.txt ./out_put --preset=presets/deepvoice3_ljspeech.json
+
+For(Branch for LJ data set)
+https://github.com/r9y9/deepvoice3_pytorch/tree/43579764f35de6b8bac2b18b52a06e4e11b705b2
+python synthesis.py --hparams="use_preset=True,builder=deepvoice3" abc.pth text_list.txt out_put
