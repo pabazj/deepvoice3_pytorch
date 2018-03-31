@@ -6,7 +6,7 @@ import audio
 from hparams import hparams
 
 
-def build_from_path(in_dir, out_dir, num_workers=1, tqdm=lambda x: x):
+def build_from_path(in_dir, out_dir, num_workers=1, sample_size=-1, tqdm=lambda x: x):
     '''Preprocesses the LJ Speech dataset from a given input path into a given output directory.
 
       Args:
@@ -29,11 +29,19 @@ def build_from_path(in_dir, out_dir, num_workers=1, tqdm=lambda x: x):
             parts = line.strip().split('|')
             wav_path = os.path.join(in_dir, 'wavs', '%s.wav' % parts[0])
             text = parts[2]
+            #Schedule worker tasks to the threads
             futures.append(executor.submit(
                 partial(_process_utterance, out_dir, index, wav_path, text)))
-            index += 1
+            index += 1   
+            if sample_size > -1:
+                if index == sample_size:
+                    break
+            #print("[Pabz-test]" + str(index))
+            
+    print("[Pabz-test][metadata.csv reading done]")    
+    
+    #Wait on the results from async calls and return 
     return [future.result() for future in tqdm(futures)]
-
 
 def _process_utterance(out_dir, index, wav_path, text):
     '''Preprocesses a single utterance audio/text pair.
