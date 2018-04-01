@@ -57,6 +57,8 @@ from matplotlib import cm
 from warnings import warn
 from hparams import hparams, hparams_debug_string
 
+import threading
+
 fs = hparams.sample_rate
 
 global_step = 0
@@ -67,6 +69,11 @@ if use_cuda:
 
 _frontend = None  # to be set later
 
+def _garbageCollect():
+    if platform.system() == "Windows":
+        _frontend = None  # memory leaking prevention in Windows
+        gc.collect()  # garbage collection enforced
+        print("GC done")
 
 def _pad(seq, max_len, constant_values=0):
     return np.pad(seq, (0, max_len - len(seq)),
@@ -125,6 +132,7 @@ class TextDataSource(FileDataSource):
 
             return texts, speaker_ids
         else:
+            print("[Pabz_test] collect_files -> {}".format(len(texts)))
             return texts
 
     def collect_features(self, *args):
@@ -136,13 +144,6 @@ class TextDataSource(FileDataSource):
         if _frontend is None:
             _frontend = getattr(frontend, hparams.frontend)
         seq = _frontend.text_to_sequence(text, p=hparams.replace_pronunciation_prob)
-
-        if platform.system() == "Windows":
-            if hasattr(hparams, 'gc_probability'):
-                _frontend = None  # memory leaking prevention in Windows
-                if np.random.rand() < hparams.gc_probability:
-                    gc.collect()  # garbage collection enforced
-                    print("GC done")
 
         if self.multi_speaker:
             return np.asarray(seq, dtype=np.int32), int(speaker_id)
@@ -380,15 +381,12 @@ def prepare_spec_image(spectrogram):
 
 
 def eval_model(global_step, writer, model, checkpoint_dir, ismultispeaker):
+
     # harded coded
     texts = [
-        "Scientists at the CERN laboratory say they have discovered a new particle.",
-        "There's a way to measure the acute emotional intelligence that has never gone out of style.",
-        "President Trump met with other leaders at the Group of 20 conference.",
-        "Generative adversarial network or variational auto-encoder.",
-        "Please call Stella.",
-        "Some have accepted this as a miracle without any physical explanation.",
+        "This is Informatics Institute of Technology evaluation sentence for Text to speeh for sinhala"
     ]
+
     import synthesis
     synthesis._frontend = _frontend
 
@@ -477,8 +475,18 @@ def save_states(global_step, writer, mel_outputs, linear_outputs, attn, mel, y,
         # Predicted audio signal
         signal = audio.inv_spectrogram(linear_output.T)
         signal /= np.max(np.abs(signal))
+                          
+        print("[Pabz-test]save_states() : len(linear_outputs)={} : idx={}".format(
+            len(linear_outputs),
+            idx)) 
+
+        print("[Pabz-test]save_states() : linear_output={}".format(linear_output)) 
+
         path = join(checkpoint_dir, "step{:09d}_predicted.wav".format(
-            global_step))
+            global_step))      
+            
+        print("[Pabz-test]save_states() : Generating predicted wave -> {}".format(path)) 
+ 
         try:
             writer.add_audio("Predicted audio signal", signal, global_step, sample_rate=fs)
         except Exception as e:
@@ -498,10 +506,8 @@ def save_states(global_step, writer, mel_outputs, linear_outputs, attn, mel, y,
         spectrogram = prepare_spec_image(audio._denormalize(linear_output))
         writer.add_image("Target linear spectrogram", spectrogram, global_step)
 
-
 def logit(x, eps=1e-8):
     return torch.log(x + eps) - torch.log(1 - x + eps)
-
 
 def masked_mean(y, mask):
     # (B, T, D)
@@ -582,13 +588,21 @@ def train(model, data_loader, optimizer, writer,
 
     assert train_seq2seq or train_postnet
 
+    print("[Pabz-test]train() : nepochs=" + str(nepochs))    
+    print("[Pabz-test]train() : len(data_loader)={}".format(len(data_loader))) 
+
     global global_step, global_epoch
     while global_epoch < nepochs:
         running_loss = 0.
+        enumerated_data = enumerate(data_loader)
+        print("[Pabz-test]train() : enumerate(data_loader) : len(data_loader)={} global_step={}".format(len(data_loader),
+                                                                                                        global_step)) 
+
         for step, (x, input_lengths, mel, y, positions, done, target_lengths,
                    speaker_ids) \
-                in tqdm(enumerate(data_loader)):
-            model.train()
+                in tqdm(enumerated_data):    
+            #print("[Pabz-test]train() : threading.current_thread()={}".format(str(threading.current_thread()))) 
+            model.train()    
             ismultispeaker = speaker_ids is not None
             # Learning rate schedule
             if hparams.lr_schedule is not None:
@@ -612,11 +626,7 @@ def train(model, data_loader, optimizer, writer,
 
             max_seq_len = max(input_lengths.max(), decoder_lengths.max())
             if max_seq_len >= hparams.max_positions:
-                raise RuntimeError(
-                    """max_seq_len ({}) >= max_posision ({})
-Input text or decoder targget length exceeded the maximum length.
-Please set a larger value for ``max_position`` in hyper parameters.""".format(
-                        max_seq_len, hparams.max_positions))
+                raise RuntimeError("")
 
             # Feed data
             x, mel, y = Variable(x), Variable(mel), Variable(y)
@@ -655,7 +665,7 @@ Please set a larger value for ``max_position`` in hyper parameters.""".format(
                 decoder_target_mask, target_mask = None, None
 
             # Apply model
-            if train_seq2seq and train_postnet:
+            if train_seq2seq and train_postnet:                
                 mel_outputs, linear_outputs, attn, done_hat = model(
                     x, mel, speaker_ids=speaker_ids,
                     text_positions=text_positions, frame_positions=frame_positions,
@@ -721,6 +731,8 @@ Please set a larger value for ``max_position`` in hyper parameters.""".format(
                 save_checkpoint(
                     model, optimizer, global_step, checkpoint_dir, global_epoch,
                     train_seq2seq, train_postnet)
+                    
+                _garbageCollect()
 
             if global_step > 0 and global_step % hparams.eval_interval == 0:
                 eval_model(global_step, writer, model, checkpoint_dir, ismultispeaker)
@@ -755,7 +767,7 @@ Please set a larger value for ``max_position`` in hyper parameters.""".format(
 
         averaged_loss = running_loss / (len(data_loader))
         writer.add_scalar("loss (per epoch)", averaged_loss, global_epoch)
-        print("Loss: {}".format(running_loss / (len(data_loader))))
+        print("Loss: {} global_step {}".format(running_loss / (len(data_loader)), global_step))
 
         global_epoch += 1
 
@@ -849,7 +861,8 @@ def restore_parts(path, model):
     model.load_state_dict(model_dict)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":    
+    print("[Pabz-test]eval_model() : Train Program Started") 
     args = docopt(__doc__)
     print("Command line args:\n", args)
     checkpoint_dir = args["--checkpoint-dir"]
@@ -894,7 +907,7 @@ if __name__ == "__main__":
     # Also reduces the occurrence of THAllocator.c 0x05 error in Widows build of PyTorch
     if platform.system() == "Windows":
         print("Windows Detected - num_workers set to 1")
-        hparams.set_hparam('num_workers', 1)
+        #hparams.set_hparam('num_workers', 1)
 
     assert hparams.name == "deepvoice3"
     print(hparams_debug_string())
@@ -915,6 +928,7 @@ if __name__ == "__main__":
 
     # Dataset and Dataloader setup
     dataset = PyTorchDataset(X, Mel, Y)
+    print("[Pabz-test]__main__() : dataset size={} hparams.batch_size={}".format(str(len(dataset)), hparams.batch_size))    
     data_loader = data_utils.DataLoader(
         dataset, batch_size=hparams.batch_size,
         num_workers=hparams.num_workers, sampler=sampler,
@@ -967,9 +981,10 @@ if __name__ == "__main__":
               clip_thresh=hparams.clip_thresh,
               train_seq2seq=train_seq2seq, train_postnet=train_postnet)
     except KeyboardInterrupt:
-        save_checkpoint(
-            model, optimizer, global_step, checkpoint_dir, global_epoch,
-            train_seq2seq, train_postnet)
+        print("[Pabz test]KeyboardInterrupt")
+        #save_checkpoint(
+           # model, optimizer, global_step, checkpoint_dir, global_epoch,
+           # train_seq2seq, train_postnet)
 
     print("Finished")
     sys.exit(0)
