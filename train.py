@@ -140,10 +140,16 @@ class TextDataSource(FileDataSource):
             text, speaker_id = args
         else:
             text = args[0]
+            
         global _frontend
         if _frontend is None:
             _frontend = getattr(frontend, hparams.frontend)
+
         seq = _frontend.text_to_sequence(text, p=hparams.replace_pronunciation_prob)
+
+        #_frontend = None  # memory leaking prevention in Windows
+        #gc.collect()  # garbage collection enforced
+        #print("GC done")
 
         if self.multi_speaker:
             return np.asarray(seq, dtype=np.int32), int(speaker_id)
@@ -162,6 +168,7 @@ class _NPYDataSource(FileDataSource):
         meta = join(self.data_root, "train.txt")
         with open(meta, "rb") as f:
             lines = f.readlines()
+
         l = lines[0].decode("utf-8").split("|")
         assert len(l) == 4 or len(l) == 5
         multi_speaker = len(l) == 5
@@ -185,7 +192,6 @@ class _NPYDataSource(FileDataSource):
 
     def collect_features(self, path):
         return np.load(path)
-
 
 class MelSpecDataSource(_NPYDataSource):
     def __init__(self, data_root, speaker_id=None):
@@ -480,7 +486,7 @@ def save_states(global_step, writer, mel_outputs, linear_outputs, attn, mel, y,
             len(linear_outputs),
             idx)) 
 
-        print("[Pabz-test]save_states() : linear_output={}".format(linear_output)) 
+        #print("[Pabz-test]save_states() : linear_output={}".format(linear_output)) 
 
         path = join(checkpoint_dir, "step{:09d}_predicted.wav".format(
             global_step))      
@@ -768,6 +774,7 @@ def train(model, data_loader, optimizer, writer,
         averaged_loss = running_loss / (len(data_loader))
         writer.add_scalar("loss (per epoch)", averaged_loss, global_epoch)
         print("Loss: {} global_step {}".format(running_loss / (len(data_loader)), global_step))
+        _garbageCollect()
 
         global_epoch += 1
 
@@ -970,7 +977,7 @@ if __name__ == "__main__":
             log_event_path = "log/run-test" + str(datetime.now()).replace(" ", "_")
     print("Los event path: {}".format(log_event_path))
     writer = SummaryWriter(log_dir=log_event_path)
-
+    
     # Train!
     try:
         train(model, data_loader, optimizer, writer,
@@ -980,6 +987,7 @@ if __name__ == "__main__":
               nepochs=hparams.nepochs,
               clip_thresh=hparams.clip_thresh,
               train_seq2seq=train_seq2seq, train_postnet=train_postnet)
+
     except KeyboardInterrupt:
         print("[Pabz test]KeyboardInterrupt")
         #save_checkpoint(
