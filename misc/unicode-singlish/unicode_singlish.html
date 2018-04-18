@@ -1,7 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <!-- saved from url=(0055)http://ucsc.cmb.ac.lk/ltrl/services/feconverter/t1.html -->
 <html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Real Time Unicode Converter</title>
+    <title>Unicode to Singlish</title>
     
     <link rel="stylesheet" href="./Real Time Unicode Converter_files/main.css">
     <style type="text/css">
@@ -145,53 +145,42 @@ function startText() {
     var s,r,v;
     text = document.txtBox.box1.value;  
     //special consonents
-    for (var i=0; i<specialConsonants.length; i++){
-        text = text.replace(specialConsonants[i], specialConsonantsUni[i]);
+    for (var i=0; i<specialConsonantsUni.length; i++){
+        text = text.replace(specialConsonantsUni[i], specialConsonants[i]);
     }
     //consonents + special Chars
-    for (var i=0; i<specialCharUni.length; i++){
-        for (var j=0;j<consonants.length;j++){
-            s = consonants[j] + specialChar[i];
-            v = consonantsUni[j] + specialCharUni[i];
+    for (var i=0; i<specialChar.length; i++){
+        for (var j=0;j<consonantsUni.length;j++){
+            s = consonantsUni[j] + specialCharUni[i];
+            v = consonants[j] + specialChar[i];
             r = new RegExp(s, "g");
             text = text.replace(r, v);
         }
     }
     //consonants + Rakaransha + vowel modifiers
-    for (var j=0;j<consonants.length;j++){
-        for (var i=0;i<vowels.length;i++){
+    for (var j=0;j<consonantsUni.length;j++){
+        for (var i=0;i<vowelModifiersUni.length;i++){
             s = consonants[j] + "r" + vowels[i];
             v = consonantsUni[j] + "්‍ර" + vowelModifiersUni[i];
-            r = new RegExp(s, "g");
-            text = text.replace(r, v);
+            r = new RegExp(v, "g");
+            text = text.replace(r, s);
         }
         s = consonants[j] + "r";
         v = consonantsUni[j] + "්‍ර";
-        r = new RegExp(s, "g");
-        text = text.replace(r, v);
+        r = new RegExp(v, "g");
+        text = text.replace(r, s);
     }
+    
     //consonents + vowel modifiers
-    for (var i=0;i<consonants.length;i++){
-        for (var j=0;j<nVowels;j++){ 
+    for (var i=0;i<consonantsUni.length;i++){
+        for (var j=0;j<vowelModifiersUni.length;j++){ 
             s = consonants[i]+vowels[j];
             v = consonantsUni[i] + vowelModifiersUni[j];
-            r = new RegExp(s, "g");
-            text = text.replace(r, v);
+            r = new RegExp(v, "g");
+            text = text.replace(r, s);
         }
     }
-
-    //consonents + HAL
-    for (var i=0; i<consonants.length; i++){
-        r = new RegExp(consonants[i], "g");
-        text = text.replace(r, consonantsUni[i]+"්");
-    }
-        
-    //vowels
-    for (var i=0; i<vowels.length; i++){
-        r = new RegExp(vowels[i], "g");
-        text = text.replace(r, vowelsUni[i]);
-    }
-
+  
     document.txtBox.box2.value=text;
 }
 
@@ -229,7 +218,7 @@ function changeVisibility(){
                     <form name="txtBox" id="txtBox">
                         <img src="./Real Time Unicode Converter_files/ui3RT.jpg" alt="Real Time Font Converter"><br>
                         <br>
-                        <span class="TableText">Transliterated ( SinGlish Scheme)</span> &nbsp; &nbsp; &nbsp;
+                        <span class="TableText">Unicode (යුනිකෝඩ්)</span> &nbsp; &nbsp; &nbsp;
                         &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
                         &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp;&nbsp; &nbsp;
                         &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; <a><span id="link" class="link" align="right" onclick="changeVisibility()">
@@ -239,7 +228,7 @@ function changeVisibility(){
                             width: 600px;" name="box1" rows="7"></textarea>
                         <input type="reset" value="Reset" style="position: relative; left: 500px; width: 100px;">
                         <br>
-                        <span class="TableText">Unicode (යුනිකෝඩ්)</span><br>
+                        <span class="TableText">Transliterated ( SinGlish Scheme)</span><br>
                         <textarea style="font-size: 14pt; font-family: Potha, Malithi Web , Arial Unicode MS;
                             width: 600px;" name="box2" rows="7"></textarea>
                         <input onclick="copyit(&#39;txtBox.box2&#39;)" type="button" value="Copy" style="position: relative;
