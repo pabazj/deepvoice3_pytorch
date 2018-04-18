@@ -142,8 +142,9 @@ var specialChar= new Array()
     
 
 function startText() {
-    var s,r,v;
+    var s,r,v,debug_text = "";
     text = document.txtBox.box1.value;  
+
     //special consonents
     for (var i=0; i<specialConsonantsUni.length; i++){
         text = text.replace(specialConsonantsUni[i], specialConsonants[i]);
@@ -174,14 +175,37 @@ function startText() {
     //consonents + vowel modifiers
     for (var i=0;i<consonantsUni.length;i++){
         for (var j=0;j<vowelModifiersUni.length;j++){ 
-            s = consonants[i]+vowels[j];
+            s = consonants[i] + vowels[j];
             v = consonantsUni[i] + vowelModifiersUni[j];
-            r = new RegExp(v, "g");
+            r = new RegExp(v, "g"); 
             text = text.replace(r, s);
         }
     }
-  
-    document.txtBox.box2.value=text;
+
+    //consonents + HAL
+    for (var i=0; i<consonantsUni.length; i++){
+        r = new RegExp(consonantsUni[i] + "්", "g");
+        text = text.replace(r, consonants[i]);
+
+        /*
+        var subStr = consonantsUni[i] + "්";
+        if(text.search(subStr) >= 0)
+        {
+            debug_text += "Substr -> " + subStr + " i -> " + i + " consonants[i] -> " + consonants[i] + " \n";
+        }
+           
+        //debug_text += "i -> " + i + " Normal -> " + consonantsUni[i] + " HAL -> " + (consonantsUni[i] + "්") + " Trans -> " + consonants[i] + "\n";        
+        */
+    }
+
+    //vowels
+    for (var i=0; i<vowelsUni.length; i++){
+        r = new RegExp(vowelsUni[i], "g");
+        text = text.replace(r, vowels[i]);
+    }
+
+    //text = debug_text;
+    document.txtBox.box2.value = text;
 }
 
 function copyit(theField) {
