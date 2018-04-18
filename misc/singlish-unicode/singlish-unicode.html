@@ -154,10 +154,10 @@ function startText() {
             s = consonants[j] + specialChar[i];
             v = consonantsUni[j] + specialCharUni[i];
             r = new RegExp(s, "g");
-            //console.log('output - >' + s)
             text = text.replace(r, v);
         }
     }
+    
     //consonants + Rakaransha + vowel modifiers
     for (var j=0;j<consonants.length;j++){
         for (var i=0;i<vowels.length;i++){
@@ -171,6 +171,7 @@ function startText() {
         r = new RegExp(s, "g");
         text = text.replace(r, v);
     }
+
     //consonents + vowel modifiers
     for (var i=0;i<consonants.length;i++){
         for (var j=0;j<nVowels;j++){ 

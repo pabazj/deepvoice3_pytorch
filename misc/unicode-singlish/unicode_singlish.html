@@ -70,13 +70,13 @@ var specialChar= new Array()
     vowelsUni[17]='ඖ';    vowels[17]='au';    vowelModifiersUni[17]='ෞ';
     vowelsUni[18]='ඇ';    vowels[18]='/\a';    vowelModifiersUni[18]='ැ';
     
-    vowelsUni[19]='අ';    vowels[19]='a';    vowelModifiersUni[19]='';
+    vowelsUni[19]='ඓ';    vowels[19]='I';    vowelModifiersUni[19]='ෛ';
     vowelsUni[20]='ඇ';    vowels[20]='A';    vowelModifiersUni[20]='ැ';
     vowelsUni[21]='ඉ';    vowels[21]='i';    vowelModifiersUni[21]='ි';
     vowelsUni[22]='එ';    vowels[22]='e';    vowelModifiersUni[22]='ෙ';
     vowelsUni[23]='උ';    vowels[23]='u';    vowelModifiersUni[23]='ු';
-    vowelsUni[24]='ඔ';    vowels[24]='o';    vowelModifiersUni[24]='ො';
-    vowelsUni[25]='ඓ';    vowels[25]='I';    vowelModifiersUni[25]='ෛ';
+    vowelsUni[24]='ඔ';    vowels[24]='o';    vowelModifiersUni[24]='ො';    
+    vowelsUni[25]='අ';    vowels[25]='a';    vowelModifiersUni[25]='';
     nVowels=26;
 
     specialConsonantsUni[0]='ං'; specialConsonants[0]=/\\n/g;
@@ -144,7 +144,7 @@ var specialChar= new Array()
 function startText() {
     var s,r,v,debug_text = "";
     text = document.txtBox.box1.value;  
-
+    
     //special consonents
     for (var i=0; i<specialConsonantsUni.length; i++){
         text = text.replace(specialConsonantsUni[i], specialConsonants[i]);
@@ -160,7 +160,7 @@ function startText() {
     }
     //consonants + Rakaransha + vowel modifiers
     for (var j=0;j<consonantsUni.length;j++){
-        for (var i=0;i<vowelModifiersUni.length;i++){
+        for (var i=0;i<vowels.length;i++){
             s = consonants[j] + "r" + vowels[i];
             v = consonantsUni[j] + "්‍ර" + vowelModifiersUni[i];
             r = new RegExp(v, "g");
@@ -175,10 +175,10 @@ function startText() {
     //consonents + vowel modifiers
     for (var i=0;i<consonantsUni.length;i++){
         for (var j=0;j<vowelModifiersUni.length;j++){ 
-            s = consonants[i] + vowels[j];
+            s = consonants[i] + vowels[j];      
             v = consonantsUni[i] + vowelModifiersUni[j];
             r = new RegExp(v, "g"); 
-            text = text.replace(r, s);
+            text = text.replace(r, s);                
         }
     }
 
@@ -186,16 +186,6 @@ function startText() {
     for (var i=0; i<consonantsUni.length; i++){
         r = new RegExp(consonantsUni[i] + "්", "g");
         text = text.replace(r, consonants[i]);
-
-        /*
-        var subStr = consonantsUni[i] + "්";
-        if(text.search(subStr) >= 0)
-        {
-            debug_text += "Substr -> " + subStr + " i -> " + i + " consonants[i] -> " + consonants[i] + " \n";
-        }
-           
-        //debug_text += "i -> " + i + " Normal -> " + consonantsUni[i] + " HAL -> " + (consonantsUni[i] + "්") + " Trans -> " + consonants[i] + "\n";        
-        */
     }
 
     //vowels
