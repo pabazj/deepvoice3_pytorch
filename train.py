@@ -105,12 +105,13 @@ def plot_alignment(alignment, path, info=None):
 
 
 class TextDataSource(FileDataSource):
-    def __init__(self, data_root, speaker_id=None):
+    def __init__(self, data_root, frontendStr, speaker_id=None):
         self.data_root = data_root
         self.speaker_ids = None
         self.multi_speaker = False
         # If not None, filter by speaker_id
         self.speaker_id = speaker_id
+        self.frontendStr = frontendStr
 
     def collect_files(self):
         meta = join(self.data_root, "train.txt")
@@ -141,12 +142,14 @@ class TextDataSource(FileDataSource):
         else:
             text = args[0]
             
+        #print("[Pabz_test] Frontend is -> {}".format(self.frontendStr))
         global _frontend
         if _frontend is None:
-            _frontend = getattr(frontend, hparams.frontend)
+            _frontend = getattr(frontend, self.frontendStr)
 
         seq = _frontend.text_to_sequence(text, p=hparams.replace_pronunciation_prob)
-
+        #print("[Pabz_test] seq is -> {}".format(seq))
+        
         #_frontend = None  # memory leaking prevention in Windows
         #gc.collect()  # garbage collection enforced
         #print("GC done")
@@ -491,7 +494,7 @@ def save_states(global_step, writer, mel_outputs, linear_outputs, attn, mel, y,
         path = join(checkpoint_dir, "step{:09d}_predicted.wav".format(
             global_step))      
             
-        print("[Pabz-test]save_states() : Generating predicted wave -> {}".format(path)) 
+        print("[Pabz-test]save_states() : Generating predicted wave without text -> {}".format(path)) 
  
         try:
             writer.add_audio("Predicted audio signal", signal, global_step, sample_rate=fs)
@@ -595,14 +598,14 @@ def train(model, data_loader, optimizer, writer,
     assert train_seq2seq or train_postnet
 
     print("[Pabz-test]train() : nepochs=" + str(nepochs))    
-    print("[Pabz-test]train() : len(data_loader)={}".format(len(data_loader))) 
+    print("[Pabz-test]train() : No of iterations={}".format(len(data_loader))) 
 
     global global_step, global_epoch
     while global_epoch < nepochs:
         running_loss = 0.
         enumerated_data = enumerate(data_loader)
-        print("[Pabz-test]train() : enumerate(data_loader) : len(data_loader)={} global_step={}".format(len(data_loader),
-                                                                                                        global_step)) 
+        #print("[Pabz-test]train() : enumerate(data_loader) : len(data_loader)={} global_step={}".format(len(data_loader),
+        #                                                                                                global_step)) 
 
         for step, (x, input_lengths, mel, y, positions, done, target_lengths,
                    speaker_ids) \
@@ -632,7 +635,7 @@ def train(model, data_loader, optimizer, writer,
 
             max_seq_len = max(input_lengths.max(), decoder_lengths.max())
             if max_seq_len >= hparams.max_positions:
-                raise RuntimeError("")
+                raise RuntimeError("max_seq_len >= hparams.max_positions")
 
             # Feed data
             x, mel, y = Variable(x), Variable(mel), Variable(y)
@@ -919,12 +922,13 @@ if __name__ == "__main__":
     assert hparams.name == "deepvoice3"
     print(hparams_debug_string())
 
+    print("[Pabz_test] Frontend is -> {}".format(hparams.frontend))
     _frontend = getattr(frontend, hparams.frontend)
 
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     # Input dataset definitions
-    X = FileSourceDataset(TextDataSource(data_root, speaker_id))
+    X = FileSourceDataset(TextDataSource(data_root, hparams.frontend, speaker_id))
     Mel = FileSourceDataset(MelSpecDataSource(data_root, speaker_id))
     Y = FileSourceDataset(LinearSpecDataSource(data_root, speaker_id))
 
