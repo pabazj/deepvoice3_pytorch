@@ -142,7 +142,7 @@ class TextDataSource(FileDataSource):
         else:
             text = args[0]
             
-        #print("[Pabz_test] Frontend is -> {}".format(self.frontendStr))
+        #print("[Pabz_test] TextDataSource:collect_features text is -> {}".format(text))
         global _frontend
         if _frontend is None:
             _frontend = getattr(frontend, self.frontendStr)
@@ -194,6 +194,7 @@ class _NPYDataSource(FileDataSource):
         return paths
 
     def collect_features(self, path):
+        #print("[Pabz_test] _NPYDataSource:collect_features() path is -> {}".format(path))
         return np.load(path)
 
 class MelSpecDataSource(_NPYDataSource):
@@ -597,20 +598,19 @@ def train(model, data_loader, optimizer, writer,
 
     assert train_seq2seq or train_postnet
 
-    print("[Pabz-test]train() : nepochs=" + str(nepochs))    
-    print("[Pabz-test]train() : No of iterations={}".format(len(data_loader))) 
+    print("[Pabz-test] train() : nepochs=" + str(nepochs))    
+    print("[Pabz-test] train() : No of iterations={}".format(len(data_loader))) 
 
     global global_step, global_epoch
     while global_epoch < nepochs:
         running_loss = 0.
         enumerated_data = enumerate(data_loader)
-        #print("[Pabz-test]train() : enumerate(data_loader) : len(data_loader)={} global_step={}".format(len(data_loader),
-        #                                                                                                global_step)) 
 
-        for step, (x, input_lengths, mel, y, positions, done, target_lengths,
-                   speaker_ids) \
-                in tqdm(enumerated_data):    
-            #print("[Pabz-test]train() : threading.current_thread()={}".format(str(threading.current_thread()))) 
+        #For each enumeration it will call collect_features() in
+        #TextDataSource, LinearSpecDataSource and MelSpecDataSource for loading training data for that iteration.
+        for step, (x, input_lengths, mel, y, positions, done, target_lengths, speaker_ids) in tqdm(enumerated_data): 
+
+            #print("[Pabz-test] train() : threading.current_thread()={}".format(str(threading.current_thread()))) 
             model.train()    
             ismultispeaker = speaker_ids is not None
             # Learning rate schedule
@@ -674,7 +674,7 @@ def train(model, data_loader, optimizer, writer,
                 decoder_target_mask, target_mask = None, None
 
             # Apply model
-            if train_seq2seq and train_postnet:                
+            if train_seq2seq and train_postnet:     
                 mel_outputs, linear_outputs, attn, done_hat = model(
                     x, mel, speaker_ids=speaker_ids,
                     text_positions=text_positions, frame_positions=frame_positions,
@@ -734,13 +734,8 @@ def train(model, data_loader, optimizer, writer,
                 loss += attn_loss
 
             if global_step > 0 and global_step % checkpoint_interval == 0:
-                save_states(
-                    global_step, writer, mel_outputs, linear_outputs, attn,
-                    mel, y, input_lengths, checkpoint_dir)
-                save_checkpoint(
-                    model, optimizer, global_step, checkpoint_dir, global_epoch,
-                    train_seq2seq, train_postnet)
-                    
+                save_states(global_step, writer, mel_outputs, linear_outputs, attn, mel, y, input_lengths, checkpoint_dir)
+                save_checkpoint(model, optimizer, global_step, checkpoint_dir, global_epoch, train_seq2seq, train_postnet)                    
                 _garbageCollect()
 
             if global_step > 0 and global_step % hparams.eval_interval == 0:
@@ -773,6 +768,7 @@ def train(model, data_loader, optimizer, writer,
 
             global_step += 1
             running_loss += loss.data[0]
+            #print("[Pabz-test] train() : End of itertaion") 
 
         averaged_loss = running_loss / (len(data_loader))
         writer.add_scalar("loss (per epoch)", averaged_loss, global_epoch)
@@ -901,7 +897,8 @@ if __name__ == "__main__":
         train_seq2seq, train_postnet = True, True
     if train_seq2seq:
         print("Training seq2seq model")
-    elif train_postnet:
+    
+    if train_postnet:
         print("Training postnet model")
     else:
         assert False, "must be specified wrong args"
@@ -915,14 +912,14 @@ if __name__ == "__main__":
 
     # Preventing Windows specific error such as MemoryError
     # Also reduces the occurrence of THAllocator.c 0x05 error in Widows build of PyTorch
-    if platform.system() == "Windows":
-        print("Windows Detected - num_workers set to 1")
+    #if platform.system() == "Windows":
+        #print("Windows Detected - num_workers set to 1")
         #hparams.set_hparam('num_workers', 1)
 
     assert hparams.name == "deepvoice3"
-    print(hparams_debug_string())
+    #print(hparams_debug_string())
 
-    print("[Pabz_test] Frontend is -> {}".format(hparams.frontend))
+    print("[Pabz_test] __main__() : Frontend={}".format(hparams.frontend))
     _frontend = getattr(frontend, hparams.frontend)
 
     os.makedirs(checkpoint_dir, exist_ok=True)
@@ -939,11 +936,13 @@ if __name__ == "__main__":
 
     # Dataset and Dataloader setup
     dataset = PyTorchDataset(X, Mel, Y)
-    print("[Pabz-test]__main__() : dataset size={} hparams.batch_size={}".format(str(len(dataset)), hparams.batch_size))    
+    print("[Pabz-test] __main__() : dataset size={} hparams.batch_size={}".format(str(len(dataset)), hparams.batch_size))    
     data_loader = data_utils.DataLoader(
         dataset, batch_size=hparams.batch_size,
         num_workers=hparams.num_workers, sampler=sampler,
         collate_fn=collate_fn, pin_memory=hparams.pin_memory)
+
+    print("[Pabz-test] __main__() : No of workers={}".format(str(hparams.num_workers)))
 
     # Model
     model = build_model()

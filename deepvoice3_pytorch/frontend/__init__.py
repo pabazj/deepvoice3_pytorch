@@ -12,6 +12,13 @@ and the property:
 - n_vocab
 
 """
+
+# [Pabz-test]optinoal Sinhala frontend
+try:
+    from deepvoice3_pytorch.frontend import sin
+except ImportError:
+    sin = None
+    
 from deepvoice3_pytorch.frontend import en
 
 # optinoal Japanese frontend
@@ -25,9 +32,4 @@ try:
 except ImportError:
     ko = None
 
-# [Pabz-test]optinoal Sinhala frontend
-try:
-    from deepvoice3_pytorch.frontend import sin
-except ImportError:
-    sin = None
 

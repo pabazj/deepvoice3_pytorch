@@ -2,7 +2,8 @@
 python preprocess.py --preset=presets/deepvoice3_ljspeech.json ljspeech ../../deep_voice_data/LJSpeech-1.1/ ../../deep_voice_data/ljspeech_sample
 
 #Pre-process only a subset of training data 
-python preprocess.py --preset=presets/deepvoice3_ljspeech.json ljspeech ../../deep_voice_data/LJSpeech-1.1/ ../../deep_voice_data/ljspeech_spec_6550 --sample_size=6550
+python preprocess.py --preset=presets/deepvoice3_ljspeech.json ljspeech ../../deep_voice_data/raw_data/LJSpeech-1.1/ ../../deep_voice_data/ljspeech_spec_2500 --sample_size=2500
+
 
 #Train
 --checkpoint-dir=<path_to_save_model_pth_files> # Will customize the output directory. --checkpoint="<partially_trained_model>.pth" # Will start training from the nth global setp.

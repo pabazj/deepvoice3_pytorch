@@ -85,6 +85,14 @@ def transliteration_cleaners(text):
     text = collapse_whitespace(text)
     return text
 
+def sinhala_transliteration_cleaners(text):
+    '''Pipeline for sinhala_transliteration_cleaners to ASCII.'''
+    text = convert_to_ascii(text)
+    text = add_punctuation(text)
+    text = lowercase(text)
+    text = collapse_whitespace(text)
+    return text
+
 
 def english_cleaners(text):
     '''Pipeline for English text, including number and abbreviation expansion.'''
