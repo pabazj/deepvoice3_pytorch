@@ -1,0 +1,48 @@
+body {
+	SCROLLBAR-FACE-COLOR: #ffffff; SCROLLBAR-HIGHLIGHT-COLOR: #ffffff; SCROLLBAR-SHADOW-COLOR: #6468a8; SCROLLBAR-3DLIGHT-COLOR: #6468a8; SCROLLBAR-ARROW-COLOR: #000000; SCROLLBAR-TRACK-COLOR: #dddeec; SCROLLBAR-DARKSHADOW-COLOR: #6468a8; SCROLLBAR-BASE-COLOR: #ffffff
+}
+p {
+	FONT-SIZE: 8pt; COLOR: black; FONT-FAMILY: Trebuchet MS, Arial, Verdana; align: justify
+}
+.p {
+	FONT-SIZE: 8pt; COLOR: black; FONT-FAMILY: Trebuchet MS, Arial, Verdana; align: justify
+}
+a {
+	FONT-SIZE: 8pt; COLOR: #6468a8; FONT-FAMILY: "Trebuchet MS", Arial, Verdana; TEXT-DECORATION: none
+}
+.tdText {
+	FONT-WEIGHT: normal; FONT-SIZE: 8pt; COLOR: #d9f1f9; FONT-FAMILY: "Trebuchet MS", Arial, Verdana
+}
+.formText {
+	FONT-SIZE: 9pt; COLOR: black; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+.TableText {
+	FONT-SIZE: 8pt; COLOR: #6468a8; FONT-FAMILY: "Trebuchet MS", Arial, Verdana
+}
+.annoText {
+	FONT-SIZE: 8pt; COLOR: #009999; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+.TableTitle {
+	FONT-SIZE: 11px; COLOR: #000000; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+.textBoxes {
+	FONT-SIZE: 9pt; COLOR: black; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+.TableColHeader {
+	FONT-WEIGHT: 700; FONT-SIZE: 11px; COLOR: #000000; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+.tdFieldSubTitle {
+	FONT-SIZE: 8pt; COLOR: #ff9966; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+h1 {
+	FONT-SIZE: 13pt; COLOR: black; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+h2 {
+	FONT-SIZE: 9pt; COLOR: #222222; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
+.linkLeft {
+	FONT-WEIGHT: bold; FONT-SIZE: 10px; COLOR: #000000; FONT-STYLE: normal; FONT-FAMILY: "Trebuchet MS", Arial, Verdana; BACKGROUND-COLOR: #9999ff; TEXT-DECORATION: underline
+}
+.homeText {
+	FONT-WEIGHT: normal; FONT-SIZE: 8pt; COLOR: #68718e; FONT-FAMILY: Trebuchet MS, Arial, Verdana
+}
