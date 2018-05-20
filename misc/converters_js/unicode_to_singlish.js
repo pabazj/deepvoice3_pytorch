@@ -75,7 +75,7 @@ function unicodeToSinglish(unicodeText) {
     consonantsUni[22]='ප'; consonants[22]='p';
     consonantsUni[23]='බ'; consonants[23]='b';
     consonantsUni[24]='ම'; consonants[24]='m';   
-    consonantsUni[25]='‍ය'; consonants[25]='\\u005C' + 'y';
+    consonantsUni[25]='‍ය'; consonants[25]='\\' + 'y';
     consonantsUni[26]='‍ය'; consonants[26]='Y';
     consonantsUni[27]='ය'; consonants[27]='y';
     consonantsUni[28]='ජ'; consonants[28]='j';
