@@ -1,4 +1,5 @@
-function fmabayaToUnicode(fmabayaText) {
+module.exports = {
+    fmabayaToUnicode: function(fmabayaText) {
     text = fmabayaText;  
 
     text = text.replace(/'/g, "Ã");
@@ -553,3 +554,6 @@ function fmabayaToUnicode(fmabayaText) {
     
     return text;
 }
+}
+
+

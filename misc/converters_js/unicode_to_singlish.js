@@ -1,5 +1,5 @@
-
-function unicodeToSinglish(unicodeText) {
+module.exports = {
+   unicodeToSinglish: function(unicodeText) {
     var text;
     var nVowels;
     var consonants= new Array()
@@ -158,3 +158,5 @@ function unicodeToSinglish(unicodeText) {
 
     return text;
 }
+}
+
