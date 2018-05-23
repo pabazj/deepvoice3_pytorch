@@ -7,7 +7,10 @@ var accum_text = "";
 
 startConvertion();
 
-function startConvertion() {    
+function startConvertion() {   
+	var wave_file_chapter = "001";
+	var wave_file_sentence_id = 1;
+ 
 	console.log('Converting started');
 	fs = require('fs')
 	fs.readFile('sentences.txt', 'utf8', function (err,data) {
@@ -22,8 +25,12 @@ function startConvertion() {
 
 	  var i;
 	  for (i = 0; i < lines.length; i++) { 
-	     var convertedLine = convert(lines[i]) + "\n";
-	     output_data += convertedLine;	     
+	     if(lines[i] != ""){
+	     	var convertedLine = "SIN" + wave_file_chapter + "-" + generateSentenceID(wave_file_sentence_id, 4) + "|" + convert(lines[i]) + "\n";
+	     	output_data += convertedLine;	
+
+	        wave_file_sentence_id++; 
+	     }    
 	  }	
 
 	  flushToFile(output_data);
@@ -33,13 +40,7 @@ function startConvertion() {
 function convert(text){
 	var unicodeText = fmtos.fmabayaToUnicode(text);
 	var outputText  = uts.unicodeToSinglish(unicodeText); 
- 	return unicodeText;
-}
-
-
-function writeLine(text){
-	var lineToWrite = "0|" + text + "\n";
-	accum_text += lineToWrite;
+ 	return outputText;
 }
 
 function flushToFile(text)
@@ -47,6 +48,24 @@ function flushToFile(text)
 	var fs = require('fs');
 	fs.writeFileSync("out_put.csv", text);
  	console.log("The file was saved!"); 	
+}
+
+function generateSentenceID(number, noSize){
+	var prefix = "";
+	var noOfZeros = 0;	
+
+	for (i = 1; i < noSize; i++){
+	     if(number < Math.pow(10, i)){
+		noOfZeros = noSize - i;	         
+		break;
+	     }
+	}	
+
+	for (i = 0; i < noOfZeros; i++){
+	    prefix += "0";
+	}   
+
+	return prefix + String(number);
 }
 
 
