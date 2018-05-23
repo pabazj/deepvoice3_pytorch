@@ -3,6 +3,8 @@ uts = require('../converters_js/unicode_to_singlish.js')
 fmtos = require('../converters_js/fmabaya_to_unicode.js')
 
 var line_no = 0;
+var accum_text = "";
+
 startConvertion();
 
 function startConvertion() {    
@@ -13,10 +15,11 @@ function startConvertion() {
 
 	lineReader.on('line', function (line) {
 		 var convertedLine = convert(line);
-		 console.log('Singlish text -> ' + convertedLine);
-		 
+		 console.log('Singlish text -> ' + convertedLine);		 
 		 writeLine(convertedLine);
 	});
+
+	flushToFile()
 }
 
 function convert(text){
@@ -27,16 +30,23 @@ function convert(text){
 
 
 function writeLine(text){
-	console.log("writeLine called");
+	var lineToWrite = "0|" + text + "\n";
+	accum_text += lineToWrite;
+}
 
-	var lineToWrite = (line_no++) + "|" + text + "\n";
+function flushToFile(text)
+{
+	/*	
+		fs.writeFile("out_put.csv", lineToWrite, function(err) {
+	    	if(err) {
+	       	  return console.log(err);
+	   	}
+		});
+	*/	
 
 	var fs = require('fs');
-	fs.writeFile("out_put.csv", lineToWrite, function(err) {
-    	if(err) {
-       	  return console.log(err);
-   	}
-
-    	console.log("The file was saved!");
-}); 
+	fs.writeFileSync("out_put.csv", text);
+ 	console.log("The file was saved!"); 	
 }
+
+
