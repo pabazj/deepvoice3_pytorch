@@ -9,23 +9,31 @@ startConvertion();
 
 function startConvertion() {    
 	console.log('Converting started');
-	var lineReader = require('readline').createInterface({
-	  input: require('fs').createReadStream('sentences.txt')
-	});
+	fs = require('fs')
+	fs.readFile('sentences.txt', 'utf8', function (err,data) {
+	  if (err) {
+	    return console.log(err);
+	  }
+	 
+	  var os = require('os');
+	  var lines = data.split(os.EOL);
 
-	lineReader.on('line', function (line) {
-		 var convertedLine = convert(line);
-		 console.log('Singlish text -> ' + convertedLine);		 
-		 writeLine(convertedLine);
-	});
+	  var output_data = "";
 
-	flushToFile()
+	  var i;
+	  for (i = 0; i < lines.length; i++) { 
+	     var convertedLine = convert(lines[i]) + "\n";
+	     output_data += convertedLine;	     
+	  }	
+
+	  flushToFile(output_data);
+	});
 }
 
 function convert(text){
 	var unicodeText = fmtos.fmabayaToUnicode(text);
 	var outputText  = uts.unicodeToSinglish(unicodeText); 
- 	return outputText;
+ 	return unicodeText;
 }
 
 
@@ -36,14 +44,6 @@ function writeLine(text){
 
 function flushToFile(text)
 {
-	/*	
-		fs.writeFile("out_put.csv", lineToWrite, function(err) {
-	    	if(err) {
-	       	  return console.log(err);
-	   	}
-		});
-	*/	
-
 	var fs = require('fs');
 	fs.writeFileSync("out_put.csv", text);
  	console.log("The file was saved!"); 	
