@@ -27,16 +27,18 @@ def build_from_path(in_dir, out_dir, num_workers=1, sample_size=-1, tqdm=lambda 
     with open(os.path.join(in_dir, 'metadata.csv'), encoding='utf-8') as f:
         for line in f:
             parts = line.strip().split('|')
-            wav_path = os.path.join(in_dir, 'wavs', '%s.wav' % parts[0])
-            text = parts[2]
-            #Schedule worker tasks to the threads
-            futures.append(executor.submit(
-                partial(_process_utterance, out_dir, index, wav_path, text)))
-            index += 1   
-            if sample_size > -1:
-                if index == sample_size:
-                    break
-            #print("[Pabz-test]" + str(index))
+            if len(parts) != 0:
+                wav_path = os.path.join(in_dir, 'wavs', '%s.wav' % parts[0])
+                text = parts[2]
+                print("[Pabz-test]" + parts[2])
+                #Schedule worker tasks to the threads
+                futures.append(executor.submit(
+                    partial(_process_utterance, out_dir, index, wav_path, text)))
+                index += 1   
+                if sample_size > -1:
+                    if index == sample_size:
+                        break
+                #print("[Pabz-test]" + str(index))
             
     print("[Pabz-test][metadata.csv reading done]")    
     
