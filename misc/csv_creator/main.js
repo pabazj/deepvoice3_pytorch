@@ -2,49 +2,55 @@
 uts = require('../converters_js/unicode_to_singlish.js')
 fmtos = require('../converters_js/fmabaya_to_unicode.js')
 
-startConvertion('sentences.txt', 'out_put.csv');
+convertChapter("001");
 
-function startConvertion(input_file_name, output_file_name) {   
-	var wave_file_chapter = "001";
-	var wave_file_sentence_id = 1;
- 
+function convertChapter(chapterID) {   
+	var source_data_dir			= "input_files/";
+	var destination_data_dir	= "output_files/";
+	var input_file_name 		= source_data_dir + chapterID + ".txt";
+	var output_file_name		= destination_data_dir + chapterID + ".csv"
+
 	console.log('Converting started');
-	fs = require('fs')
+	fs = require('fs');
 	fs.readFile(input_file_name, 'utf8', function (err,data) {
-	  if (err) {
-	    return console.log(err);
-	  }
-	 
-	  var os = require('os');
-	  var lines = data.split(os.EOL);
+			if (err) {
+				return console.log(err);
+			}
+			
+			var os = require('os');
+			var lines = data.split(os.EOL);
 
-	  var output_data = "";
+			var output_data = "";	  	
+			var sentence_id = 1;
+			
+			for (var i = 0; i < lines.length; i++) { 
+				if(lines[i] != ""){
+				var convertedLine = "SIN" + chapterID + "-" + generateSentenceID(sentence_id, 4) + "|" + convert(lines[i]) + "\n";
+				output_data += convertedLine;	
 
-	  var i;
-	  for (i = 0; i < lines.length; i++) { 
-	     if(lines[i] != ""){
-	     	var convertedLine = "SIN" + wave_file_chapter + "-" + generateSentenceID(wave_file_sentence_id, 4) + ".wav|" + convert(lines[i]) + "\n";
-	     	output_data += convertedLine;	
+				sentence_id++; 
+				}    
+			}	
 
-	        wave_file_sentence_id++; 
-	     }    
-	  }	
-
-	  flushToFile(output_data, output_file_name);
+			flushToFile(output_data, output_file_name);
 	});
 }
 
 function replaceAll(target, search, replacement) {
-        return target.split(search).join(replacement);
+    return target.split(search).join(replacement);
 }
 
-function filter(text){
-        return replaceAll(text, ".", "");
+function filterUnicode(text){
+    return text.replace(/[\u{0080}-\u{FFFF}]/gu,"");
+}
+
+function filterFullStops(text){
+    return replaceAll(text, ".", "");
 }
 
 function convert(text){
 	var unicodeText = fmtos.fmabayaToUnicode(text);
-	var outputText  = uts.unicodeToSinglish(filter(unicodeText)); 
+	var outputText  = filterUnicode(uts.unicodeToSinglish(filterFullStops(unicodeText))); 
  	return outputText;
 }
 
@@ -61,8 +67,8 @@ function generateSentenceID(number, noSize){
 
 	for (i = 1; i < noSize; i++){
 	     if(number < Math.pow(10, i)){
-		noOfZeros = noSize - i;	         
-		break;
+			noOfZeros = noSize - i;	         
+			break;
 	     }
 	}	
 
