@@ -38,21 +38,44 @@ from tqdm import tqdm
 use_cuda = torch.cuda.is_available()
 _frontend = None  # to be set later
 
-def tts_server(socktet):
+_conn = None
+
+def send_http_ok_response(body):
+    # Reply as HTTP/1.1 server, saying "HTTP OK" (code 200).
+    response_proto = 'HTTP/1.1'
+    response_status = '200'
+    response_status_text = 'OK' # this can be random
+
+    response_headers = {
+        'Content-Type': 'text/html; encoding=utf8',
+        'Content-Length': len(body),
+         'Connection': 'close',
+    }
+
+    response_headers_raw = ''.join('%s: %s\n' % (k, v) for k, v in response_headers.items())
+
+    # sending all this stuff
+    _conn.send(('%s %s %s' % (response_proto, response_status, response_status_text)).encode())
+    _conn.send(response_headers_raw.encode())
+    _conn.send('\n'.encode()) # to separate headers from body
+    _conn.send(body.encode())
+
+def recive_data():
+    data = _conn.recv(1024)
+    return data.decode();
+
+def tts_server(port):
+    global _conn
+
+    print('Server listen on : ', port)
     import socket
 
-    HOST = ''                 # Symbolic name meaning the local host
-    PORT = 50007              # Arbitrary non-privileged port
+    HOST = ''# Symbolic name meaning the local host
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((HOST, PORT))
+    s.bind((HOST, port))
     s.listen(1)
-    conn, addr = s.accept()
-    print('Connected by', addr)
-    while 1:
-        data = conn.recv(1024)
-        if not data: break
-        conn.send(data)
-    conn.close()
+    _conn, addr = s.accept()
+    print("Socket connected : ", addr)
 
 def tts(model, text, p=0, speaker_id=None, fast=False):
     """Convert text to speech waveform given a deepvoice3 model.
@@ -92,7 +115,6 @@ def tts(model, text, p=0, speaker_id=None, fast=False):
 
     return waveform, alignment, spectrogram, mel
 
-
 if __name__ == "__main__":
     args = docopt(__doc__)
     print("Command line args:\n", args)
@@ -117,6 +139,12 @@ if __name__ == "__main__":
     # Override hyper parameters
     hparams.parse(args["--hparams"])
     assert hparams.name == "deepvoice3"
+    
+    tts_server(2002)
+    print("Recived data -> ", recive_data())
+    send_http_ok_response("state=completed")
+
+    #sys.exit(0)
 
     _frontend = getattr(frontend, hparams.frontend)
     import train
@@ -139,8 +167,6 @@ if __name__ == "__main__":
         checkpoint_name = splitext(basename(checkpoint_path))[0]
 
     model.seq2seq.decoder.max_decoder_steps = max_decoder_steps
-
-    tts_server(2002)
 
     os.makedirs(dst_dir, exist_ok=True)
     with open(text_list_file_path, "rb") as f:
