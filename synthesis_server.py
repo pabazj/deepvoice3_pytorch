@@ -78,16 +78,12 @@ def parseData(text):
     strToFind   = "tts_content"
     strIdx      = text.find(strToFind) + len(strToFind);
     jsonText    = text[strIdx:]
-    print("jsonText -> "+ jsonText)
 
     import json
     from pprint import pprint
     data = json.loads(jsonText)
     pprint(data)
     return data["tts_frontend"], data["tts_text"]
-
-def generateTTS(text):
-    print("parseJSON data -> ", parseData(text))
 
 def tts(model, text, p=0, speaker_id=None, fast=False):
     """Convert text to speech waveform given a deepvoice3 model.
@@ -128,6 +124,9 @@ def tts(model, text, p=0, speaker_id=None, fast=False):
     return waveform, alignment, spectrogram, mel
 
 if __name__ == "__main__":
+    import os 
+    print("Im running on PID ->" + str(os.getpid()))
+
     args = docopt(__doc__)
     print("Command line args:\n", args)
     checkpoint_path = args["<checkpoint>"]
@@ -151,22 +150,6 @@ if __name__ == "__main__":
     # Override hyper parameters
     hparams.parse(args["--hparams"])
     assert hparams.name == "deepvoice3"
-    
-    while 1:
-        conn = tts_server(2002)
-        while 1:
-            data = conn.recv(4096)
-            if not data: break
-            send_http_ok_response(conn, "state=completed")
-            #print("Recived data ---------------> \n", data)
-            generateTTS(data.decode())
-
-        conn.close()
-
-    #print("parseJSON data -> ", parseJSON(tts_text))
-    #send_http_ok_response("state=completed")
-
-    sys.exit(0)
 
     _frontend = getattr(frontend, hparams.frontend)
     import train
@@ -191,10 +174,15 @@ if __name__ == "__main__":
     model.seq2seq.decoder.max_decoder_steps = max_decoder_steps
 
     os.makedirs(dst_dir, exist_ok=True)
-    with open(text_list_file_path, "rb") as f:
-        lines = f.readlines()
-        for idx, line in enumerate(lines):
-            text = line.decode("utf-8")[:-1]
+
+    idx = 0        
+    while 1:
+        conn = tts_server(2002)
+        while 1:
+            data = conn.recv(4096)
+            if not data: break
+     
+            selected_frontend, text = parseData(data.decode("utf-8"))
             words = nltk.word_tokenize(text)
             waveform, alignment, _, _ = tts(
                 model, text, p=replace_pronunciation_prob, speaker_id=speaker_id, fast=True)
@@ -206,25 +194,14 @@ if __name__ == "__main__":
             plot_alignment(alignment.T, dst_alignment_path,
                            info="{}, {}".format(hparams.builder, basename(checkpoint_path)))
             audio.save_wav(waveform, dst_wav_path)
+            print("Finished! Check out {} for generated audio samples. text is -> {}".format(dst_wav_path, text))
+
             from os.path import basename, splitext
             name = splitext(basename(text_list_file_path))[0]
-            if output_html:
-                print("""
-{}
 
-({} chars, {} words)
+            send_http_ok_response(conn, "state=completed")
+            idx = idx+1;
 
-<audio controls="controls" >
-<source src="/audio/{}/{}/{}" autoplay/>
-Your browser does not support the audio element.
-</audio>
-
-<div align="center"><img src="/audio/{}/{}/{}" /></div>
-                  """.format(text, len(text), len(words),
-                             hparams.builder, name, basename(dst_wav_path),
-                             hparams.builder, name, basename(dst_alignment_path)))
-            else:
-                print(idx, ": {}\n ({} chars, {} words)".format(text, len(text), len(words)))
-
-    print("Finished! Check out {} for generated audio samples.".format(dst_dir))
+        conn.close()
+    
     sys.exit(0)
