@@ -7,7 +7,7 @@
 
 <script language="JavaScript" type="text/javascript">
 
-function convertAndSendTextToServer() {
+function sin_convertAndSendTextToServer() {
 	var unicodeText = document.txtBox.box1.value;		
     var singlishText   = _unicodeToSinglish(unicodeText);    
 	document.txtBox.box2.value = singlishText;
@@ -23,9 +23,27 @@ function convertAndSendTextToServer() {
 	textTosend 		+= "\"tts_text\":" + "\"" + singlishText + "\"";
 	textTosend 		+= "\n}";
 	
-	document.txtBox.box2.value = textTosend;
-	
 	$.post("http://localhost:2002", textTosend,
+	function(data,status){
+		alert("Data: " + data + "\nStatus: " + status);
+	});
+}
+
+function en_convertAndSendTextToServer() {
+	var singlishText = document.txtBox.box3.value;		
+
+	var bodyPadding = "\n\n"
+	var frontEnd 	= "en";	
+	var contentTag 	= "tts_content\n";
+	
+	var textTosend 	= bodyPadding;
+	textTosend 		+= contentTag;
+	textTosend 		+= "{\n\"tts_frontend\":" + "\"" + frontEnd + "\"";
+	textTosend 		+= ",\n";
+	textTosend 		+= "\"tts_text\":" + "\"" + singlishText + "\"";
+	textTosend 		+= "\n}";
+	
+	$.post("http://localhost:4002", textTosend,
 	function(data,status){
 		alert("Data: " + data + "\nStatus: " + status);
 	});
@@ -37,6 +55,9 @@ function convertAndSendTextToServer() {
 <body>
 <form name="txtBox" id="txtBox">
 	<br>
+		<span class="TableText">Sinhala TTS</span>
+    <br>
+	<br>
 		<textarea style="font-size: 12pt; width: 600px;" name="box1" rows="7"></textarea>
 	<br>
 	
@@ -44,7 +65,16 @@ function convertAndSendTextToServer() {
 		<textarea style="font-size: 12pt; width: 600px;" name="box2" rows="7"></textarea>
 	<br>
 		
-	<input onclick="convertAndSendTextToServer()" type="button" value="Synthesis TTS" style="position: relative;
+	<input onclick="sin_convertAndSendTextToServer()" type="button" value="Synthesis TTS" style="position: relative;
+                            left: 500px; width: 100px;">
+					
+	<br>
+		<span class="TableText">English TTS</span>
+    <br>					
+	<br>
+		<textarea style="font-size: 12pt; width: 600px;" name="box3" rows="7"></textarea>
+	<br>	
+	<input onclick="en_convertAndSendTextToServer()" type="button" value="Synthesis TTS" style="position: relative;
                             left: 500px; width: 100px;">
 </form>
 </body>
