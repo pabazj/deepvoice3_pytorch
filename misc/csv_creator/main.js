@@ -51,10 +51,37 @@ function flushToFile(text, file_name)
 	console.log('Files saved ->' + file_name);
 }
 
+function removeCR(text){
+	return text.replace(/[\n\r]+/g, '');
+}
+
+//Test_0
 //convertFile("002");
 //convertFile("006");
+//convertFile("013");
+
+//Test_1 no_of_files = 1069
+//convertFile("001");//
+//convertFile("002");
+//convertFile("005");//
+//convertFile("006");//
+//convertFile("007");//
+//convertFile("010");//
+//convertFile("013");
+
+//Test_2 no_of_files = 1813
+convertFile("001");
+convertFile("002");
+convertFile("003");//New
+convertFile("004");//New
+convertFile("005");
+convertFile("006");
+convertFile("007");
+convertFile("010");
+convertFile("011");//New
 convertFile("013");
-//cleanFMAbaya("111abc");
+convertFile("014");//New
+
 
 function convertFile(chapterID) {   
 	var source_data_dir			= "input_files/";
@@ -78,7 +105,7 @@ function convertFile(chapterID) {
 			for (var i = 0; i < lines.length; i++) { 
 				if(lines[i] != ""){
 					var convertedLine = convert(lines[i]);
-					var outputLine = "SIN" + chapterID + "-" + generateSentenceID(sentence_id, 4) + "|" + convertedLine + "|" + convertedLine + "\n";
+					var outputLine = "SIN" + chapterID + "-" + generateSentenceID(sentence_id, 4) + "|" + removeCR(convertedLine) + "|" + convertedLine + "\n";
 					output_data += outputLine;	
 
 					sentence_id++; 

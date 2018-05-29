@@ -41,12 +41,11 @@
 
 <script language="JavaScript" type="text/javascript">
 <!--
-
 function startText() {    
     var inputText = document.txtBox.box1.value;
 
-    var unicodeText = fmabayaToUnicode(inputText);
-    var outputText  = unicodeToSinglish(unicodeText);      
+    var unicodeText = _fmabayaToUnicode(inputText);
+    var outputText  = _unicodeToSinglish(unicodeText);      
 
     document.txtBox.box3.value = unicodeText;
     document.txtBox.box2.value = outputText;
