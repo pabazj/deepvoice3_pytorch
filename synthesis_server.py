@@ -38,9 +38,7 @@ from tqdm import tqdm
 use_cuda = torch.cuda.is_available()
 _frontend = None  # to be set later
 
-_conn = None
-
-def send_http_ok_response(body):
+def send_http_ok_response(conn, body):
     # Reply as HTTP/1.1 server, saying "HTTP OK" (code 200).
     response_proto = 'HTTP/1.1'
     response_status = '200'
@@ -55,18 +53,16 @@ def send_http_ok_response(body):
     response_headers_raw = ''.join('%s: %s\n' % (k, v) for k, v in response_headers.items())
 
     # sending all this stuff
-    _conn.send(('%s %s %s' % (response_proto, response_status, response_status_text)).encode())
-    _conn.send(response_headers_raw.encode())
-    _conn.send('\n'.encode()) # to separate headers from body
-    _conn.send(body.encode())
+    conn.send(('%s %s %s' % (response_proto, response_status, response_status_text)).encode())
+    conn.send(response_headers_raw.encode())
+    conn.send('\n'.encode()) # to separate headers from body
+    conn.send(body.encode())
 
-def recive_data():
-    data = _conn.recv(1024)
+def recive_data(conn):
+    data = conn.recv(4096)
     return data;
 
 def tts_server(port):
-    global _conn
-
     print('Server listen on : ', port)
     import socket
 
@@ -74,8 +70,24 @@ def tts_server(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((HOST, port))
     s.listen(1)
-    _conn, addr = s.accept()
+    conn, addr = s.accept()
     print("Socket connected : ", addr)
+    return conn
+
+def parseData(text):
+    strToFind   = "tts_content"
+    strIdx      = text.find(strToFind) + len(strToFind);
+    jsonText    = text[strIdx:]
+    print("jsonText -> "+ jsonText)
+
+    import json
+    from pprint import pprint
+    data = json.loads(jsonText)
+    pprint(data)
+    return data["tts_frontend"], data["tts_text"]
+
+def generateTTS(text):
+    print("parseJSON data -> ", parseData(text))
 
 def tts(model, text, p=0, speaker_id=None, fast=False):
     """Convert text to speech waveform given a deepvoice3 model.
@@ -140,9 +152,19 @@ if __name__ == "__main__":
     hparams.parse(args["--hparams"])
     assert hparams.name == "deepvoice3"
     
-    tts_server(2002)
-    print("Recived data -> ", recive_data())
-    send_http_ok_response("state=completed")
+    while 1:
+        conn = tts_server(2002)
+        while 1:
+            data = conn.recv(4096)
+            if not data: break
+            send_http_ok_response(conn, "state=completed")
+            #print("Recived data ---------------> \n", data)
+            generateTTS(data.decode())
+
+        conn.close()
+
+    #print("parseJSON data -> ", parseJSON(tts_text))
+    #send_http_ok_response("state=completed")
 
     sys.exit(0)
 

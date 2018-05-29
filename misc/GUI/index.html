@@ -9,10 +9,23 @@
 
 function convertAndSendTextToServer() {
 	var unicodeText = document.txtBox.box1.value;		
-    var textToSyn   = _unicodeToSinglish(unicodeText);    
-	document.txtBox.box2.value = textToSyn;
+    var singlishText   = _unicodeToSinglish(unicodeText);    
+	document.txtBox.box2.value = singlishText;
 	
-	$.post("http://localhost:2002", textToSyn,
+	var bodyPadding = "\n\n"
+	var frontEnd 	= "sin";	
+	var contentTag 	= "tts_content\n";
+	
+	var textTosend 	= bodyPadding;
+	textTosend 		+= contentTag;
+	textTosend 		+= "{\n\"tts_frontend\":" + "\"" + frontEnd + "\"";
+	textTosend 		+= ",\n";
+	textTosend 		+= "\"tts_text\":" + "\"" + singlishText + "\"";
+	textTosend 		+= "\n}";
+	
+	document.txtBox.box2.value = textTosend;
+	
+	$.post("http://localhost:2002", textTosend,
 	function(data,status){
 		alert("Data: " + data + "\nStatus: " + status);
 	});
