@@ -62,7 +62,7 @@ def send_http_ok_response(body):
 
 def recive_data():
     data = _conn.recv(1024)
-    return data.decode();
+    return data;
 
 def tts_server(port):
     global _conn
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     print("Recived data -> ", recive_data())
     send_http_ok_response("state=completed")
 
-    #sys.exit(0)
+    sys.exit(0)
 
     _frontend = getattr(frontend, hparams.frontend)
     import train

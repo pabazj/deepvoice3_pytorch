@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<script src="../converters_js/unicode_to_singlish.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script language="JavaScript" type="text/javascript">
+
+function convertAndSendTextToServer() {
+	var unicodeText = document.txtBox.box1.value;		
+    var textToSyn   = _unicodeToSinglish(unicodeText);    
+	document.txtBox.box2.value = textToSyn;
+	
+	$.post("http://localhost:2002", textToSyn,
+	function(data,status){
+		alert("Data: " + data + "\nStatus: " + status);
+	});
+}
+
+</script>
+</head>
+
+<body>
+<form name="txtBox" id="txtBox">
+	<br>
+		<textarea style="font-size: 12pt; width: 600px;" name="box1" rows="7"></textarea>
+	<br>
+	
+	<br>
+		<textarea style="font-size: 12pt; width: 600px;" name="box2" rows="7"></textarea>
+	<br>
+		
+	<input onclick="convertAndSendTextToServer()" type="button" value="Synthesis TTS" style="position: relative;
+                            left: 500px; width: 100px;">
+</form>
+</body>
+</html>
